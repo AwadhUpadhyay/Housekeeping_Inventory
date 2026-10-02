@@ -1,0 +1,325 @@
+@model HotelHousekeepingApp.Models.StoredItem
+
+@{
+    ViewData["Title"] = "Add Stock";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Add Stock</h2>
+            <p class="text-muted mb-0">
+                Add stock to the selected housekeeping inventory item.
+            </p>
+        </div>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Items
+        </a>
+    </div>
+
+    <!-- Item Information -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-box-seam"></i> Item Information
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label text-muted">
+                        Item Name
+                    </label>
+
+                    <div class="fw-bold fs-5">
+                        @Model.ItemName
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label text-muted">
+                        Category
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.Category
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label text-muted">
+                        Unit
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.Unit
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label text-muted">
+                        Current Stock
+                    </label>
+
+                    <div class="fw-bold text-primary fs-5">
+                        @Model.AvailableStock @Model.Unit
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Add Stock Form -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-plus-circle"></i> Stock Entry
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form asp-action="AddStocks" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.StoredItemID" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"
+                     role="alert"></div>
+
+                <div class="row g-4">
+
+                    <!-- Transaction Type -->
+                    <div class="col-md-4">
+
+                        <label for="transactionType"
+                               class="form-label fw-semibold">
+                            Transaction Type
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select id="transactionType"
+                                name="transactionType"
+                                class="form-select"
+                                required>
+
+                            <option value="STOCK_IN">
+                                Stock In
+                            </option>
+
+                            <option value="NEW">
+                                New Stock
+                            </option>
+
+                        </select>
+
+                        <div class="form-text">
+                            Select whether this is a normal stock receipt
+                            or initial/new stock.
+                        </div>
+
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="col-md-4">
+
+                        <label for="quantity"
+                               class="form-label fw-semibold">
+                            Quantity
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="number"
+                               id="quantity"
+                               name="quantity"
+                               class="form-control"
+                               min="1"
+                               step="1"
+                               value="1"
+                               required />
+
+                        <div class="form-text">
+                            Enter the quantity being added.
+                        </div>
+
+                    </div>
+
+                    <!-- Rate -->
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Current Rate
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                ₹
+                            </span>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@Model.Rate.ToString("N2")"
+                                   readonly />
+
+                        </div>
+
+                        <div class="form-text">
+                            Rate is maintained in the item master.
+                        </div>
+
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="col-12">
+
+                        <label for="remarks"
+                               class="form-label fw-semibold">
+                            Remarks
+                        </label>
+
+                        <textarea id="remarks"
+                                  name="remarks"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="500"
+                                  placeholder="Enter PO number, supplier details, invoice number or other remarks..."></textarea>
+
+                        <div class="form-text">
+                            Example: PO#2356 / Supplier Name / Invoice No.
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- Stock Preview -->
+                <div class="alert alert-info">
+
+                    <div class="d-flex align-items-center">
+
+                        <i class="bi bi-info-circle fs-4 me-3"></i>
+
+                        <div>
+                            <strong>Stock Update</strong>
+
+                            <div>
+                                Current stock:
+                                <strong>@Model.AvailableStock</strong>
+
+                                &nbsp; → &nbsp;
+
+                                <strong id="newStockPreview">
+                                    @Model.AvailableStock
+                                </strong>
+
+                                @Model.Unit
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+
+                    <div>
+
+                        <a asp-action="History"
+                           asp-route-id="@Model.StoredItemID"
+                           class="btn btn-info text-white">
+
+                            <i class="bi bi-clock-history"></i>
+                            View History
+
+                        </a>
+
+                    </div>
+
+                    <div class="d-flex gap-2">
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            Cancel
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success px-4">
+
+                            <i class="bi bi-plus-circle"></i>
+                            Add Stock
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const quantityInput =
+                document.getElementById("quantity");
+
+            const preview =
+                document.getElementById("newStockPreview");
+
+            const currentStock =
+                @Model.AvailableStock;
+
+            function updatePreview() {
+
+                let quantity =
+                    parseInt(quantityInput.value) || 0;
+
+                let newStock =
+                    currentStock + quantity;
+
+                preview.textContent =
+                    newStock.toLocaleString();
+
+            }
+
+            quantityInput.addEventListener(
+                "input",
+                updatePreview
+            );
+
+            updatePreview();
+
+        });
+
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

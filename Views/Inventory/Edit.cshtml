@@ -1,0 +1,53 @@
+@model InventoryItemFormViewModel
+@{
+    ViewData["Title"] = "Edit Item";
+}
+<h3><i class="bi bi-pencil-square"></i> Edit Inventory Item</h3>
+
+<div class="card p-4 mt-3" style="max-width:650px;">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ItemId" />
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Item Name</label>
+            <input asp-for="ItemName" class="form-control" />
+            <span asp-validation-for="ItemName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">SKU (optional)</label>
+            <input asp-for="SKU" class="form-control" />
+            <span asp-validation-for="SKU" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select asp-for="CategoryId" class="form-select">
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.CategoryId">@c.CategoryName</option>
+                }
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Unit</label>
+                <input asp-for="Unit" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Available Stock</label>
+                <input value="@Model.AvailableStock" class="form-control" disabled />
+                <div class="form-text">Use "Add Stock" from the inventory list to change this.</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Minimum Stock Level</label>
+                <input asp-for="MinStockLevel" type="number" min="0" class="form-control" />
+            </div>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label class="form-check-label">Active</label>
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Save Changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

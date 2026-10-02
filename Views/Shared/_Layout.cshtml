@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Housekeeping Inventory</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        /* =========================================================
+           ACTIVE NAVIGATION
+           ========================================================= */
+
+        .app-navbar .nav-link {
+            position: relative;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .app-navbar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.10);
+            border-radius: 5px;
+        }
+
+        .app-navbar .nav-link.active {
+            color: #ffffff !important;
+            font-weight: 700;
+            background-color: rgba(255, 255, 255, 0.14);
+            border-radius: 5px;
+        }
+
+        .app-navbar .nav-link.active::after {
+            content: "";
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 2px;
+            height: 3px;
+            background-color: #ffffff;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+@{
+    var currentController =
+        ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var currentAction =
+        ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <nav class="navbar navbar-expand-lg navbar-dark app-navbar">
+
+        <div class="container-fluid">
+
+            <a class="navbar-brand fw-bold"
+               asp-controller="Home"
+               asp-action="Index">
+
+                <i class="bi bi-building"></i>
+                Housekeeping Inventory
+
+            </a>
+
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#mainNav">
+
+                <span class="navbar-toggler-icon"></span>
+
+            </button>
+
+
+            <div class="collapse navbar-collapse" id="mainNav">
+
+                <ul class="navbar-nav me-auto">
+
+                    <!-- RUNNING DASHBOARD -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "Home" ? "active" : "")"
+                           asp-controller="Home"
+                           asp-action="Index">
+
+                            <i class="bi bi-speedometer2"></i>
+                            Running Dashboard
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- RUNNING INVENTORY -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "Inventory" ? "active" : "")"
+                           asp-controller="Inventory"
+                           asp-action="Index">
+
+                            <i class="bi bi-box-seam"></i>
+                            Running Inventory
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- STORED ITEMS -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "StoredItems" ? "active" : "")"
+                           asp-controller="StoredItems"
+                           asp-action="Index">
+
+                            <i class="bi bi-box2"></i>
+                            Stock Inventory
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- ISSUE STORED ITEM -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "Issue" && currentAction == "Create" ? "active" : "")"
+                           asp-controller="Issue"
+                           asp-action="Create">
+
+                            <i class="bi bi-box-arrow-right"></i>
+                            Issue From Stock
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- ISSUE HISTORY -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "Issue" && currentAction == "Index" ? "active" : "")"
+                           asp-controller="Issue"
+                           asp-action="Index">
+
+                            <i class="bi bi-list-ul"></i>
+                            Issue History
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- EMPLOYEES -->
+
+                    @if (User.IsInRole("Admin") || User.IsInRole("IT"))
+                    {
+                        <li class="nav-item">
+
+                            <a class="nav-link @(currentController == "Employees" ? "active" : "")"
+                               asp-controller="Employees"
+                               asp-action="Index">
+
+                                <i class="bi bi-people"></i>
+                                Employees
+
+                            </a>
+
+                        </li>
+                    }
+
+
+                    <!-- REPORTS -->
+
+                    <li class="nav-item">
+
+                        <a class="nav-link @(currentController == "Reports" ? "active" : "")"
+                           asp-controller="Reports"
+                           asp-action="Index">
+
+                            <i class="bi bi-graph-up"></i>
+                            Reports
+
+                        </a>
+
+                    </li>
+
+
+                    <!-- ADMIN ONLY -->
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- USERS -->
+
+                        <li class="nav-item">
+
+                            <a class="nav-link @(currentController == "Users" ? "active" : "")"
+                               asp-controller="Users"
+                               asp-action="Index">
+
+                                <i class="bi bi-person-gear"></i>
+                                Users
+
+                            </a>
+
+                        </li>
+
+
+                        <!-- ROLES -->
+
+                        <li class="nav-item">
+
+                            <a class="nav-link @(currentController == "Roles" ? "active" : "")"
+                               asp-controller="Roles"
+                               asp-action="Index">
+
+                                <i class="bi bi-person-badge"></i>
+                                Roles
+
+                            </a>
+
+                        </li>
+
+
+                        <!-- AUDIT LOG -->
+
+                        <li class="nav-item">
+
+                            <a class="nav-link @(currentController == "Audit" ? "active" : "")"
+                               asp-controller="Audit"
+                               asp-action="Index">
+
+                                <i class="bi bi-shield-check"></i>
+                                Audit Log
+
+                            </a>
+
+                        </li>
+                    }
+
+                </ul>
+
+
+                <!-- USER INFORMATION + LOGOUT -->
+
+                <ul class="navbar-nav">
+
+                    <li class="nav-item d-flex align-items-center text-light me-3">
+
+                        <i class="bi bi-person-circle me-1"></i>
+
+                        @User.FindFirst("FullName")?.Value
+                        (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)
+
+                    </li>
+
+
+                    <li class="nav-item">
+
+                        <form asp-controller="Account"
+                              asp-action="Logout"
+                              method="post"
+                              class="d-inline">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-outline-light btn-sm">
+
+                                <i class="bi bi-box-arrow-right"></i>
+                                Logout
+
+                            </button>
+
+                        </form>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </nav>
+}
+
+
+<div class="container-fluid mt-4 px-4">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle"></i>
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @RenderBody()
+
+</div>
+
+
+<footer class="text-center text-muted py-4 mt-5 small">
+
+    &copy; @DateTime.Now.Year
+    Hotel Housekeeping Inventory Management System
+
+</footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.20.1/jquery.validate.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

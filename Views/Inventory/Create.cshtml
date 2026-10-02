@@ -1,0 +1,53 @@
+@model InventoryItemFormViewModel
+@{
+    ViewData["Title"] = "Add Item";
+}
+<h3><i class="bi bi-plus-circle"></i> Add Inventory Item</h3>
+
+<div class="card p-4 mt-3" style="max-width:650px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Item Name</label>
+            <input asp-for="ItemName" class="form-control" placeholder="e.g. Dental Kit, Shaving Kit, Soap" />
+            <span asp-validation-for="ItemName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">SKU (optional)</label>
+            <input asp-for="SKU" class="form-control" placeholder="e.g. BA-005 (leave blank if you don't use SKUs)" />
+            <span asp-validation-for="SKU" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select asp-for="CategoryId" class="form-select">
+                <option value="">-- Select Category --</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.CategoryId">@c.CategoryName</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Unit</label>
+                <input asp-for="Unit" class="form-control" placeholder="pcs, bottle, can..." />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Opening Stock</label>
+                <input asp-for="AvailableStock" type="number" min="0" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Minimum Stock Level</label>
+                <input asp-for="MinStockLevel" type="number" min="0" class="form-control" />
+            </div>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label class="form-check-label">Active</label>
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Save Item</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

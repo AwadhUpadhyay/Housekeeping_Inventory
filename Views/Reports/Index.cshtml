@@ -1,0 +1,758 @@
+@model ReportFilterViewModel
+
+@{
+    ViewData["Title"] = "Reports";
+
+    var reportTypes = new[]
+    {
+        new { Key = "Issue", Title = "Issue Report", Icon = "bi-box-arrow-up", Description = "Items issued to employees or locations." },
+        new { Key = "StockIn", Title = "Stock In / Receiving", Icon = "bi-box-arrow-in-down", Description = "Items received into Stored Items." },
+        new { Key = "Discard", Title = "Discard Report", Icon = "bi-trash", Description = "Items recorded as discarded." },
+        new { Key = "Missing", Title = "Missing Report", Icon = "bi-question-circle", Description = "Items recorded as missing." },
+        new { Key = "RunningInventory", Title = "Running Inventory", Icon = "bi-box-seam", Description = "Current location-wise running inventory." },
+        new { Key = "StoredItems", Title = "Stored Items Stock", Icon = "bi-archive", Description = "Current Stored Items stock and status." }
+    };
+
+    var selectedReport =
+        reportTypes.FirstOrDefault(x => x.Key == Model.ReportType)
+        ?? reportTypes[0];
+
+    bool isIssue = Model.ReportType == "Issue";
+
+    bool isStockTransaction =
+        Model.ReportType == "StockIn" ||
+        Model.ReportType == "Discard" ||
+        Model.ReportType == "Missing";
+
+    bool isRunningInventory =
+        Model.ReportType == "RunningInventory";
+
+    bool isStoredItems =
+        Model.ReportType == "StoredItems";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">
+            <i class="bi bi-bar-chart-line"></i>
+            Reports
+        </h3>
+
+        <div class="text-muted small">
+            Select a report to view, filter and export its records.
+        </div>
+    </div>
+</div>
+
+
+<!-- =========================================================
+     SELECT REPORT
+     ========================================================= -->
+
+<div class="card p-3 mb-3">
+
+    <h5 class="mb-3">
+        <i class="bi bi-list-check"></i>
+        Select Report
+    </h5>
+
+    <div class="row g-3">
+
+        @foreach (var report in reportTypes)
+        {
+            <div class="col-md-4 col-lg-4">
+
+                <a asp-action="Index"
+                   asp-route-ReportType="@report.Key"
+                   class="text-decoration-none">
+
+                    <div class="card h-100 @(Model.ReportType == report.Key ? "border-primary shadow-sm" : "")">
+
+                        <div class="card-body">
+
+                            <div class="d-flex align-items-start gap-3">
+
+                                <div class="fs-3 text-primary">
+                                    <i class="bi @report.Icon"></i>
+                                </div>
+
+                                <div>
+
+                                    <h6 class="mb-1 text-dark">
+                                        @report.Title
+                                    </h6>
+
+                                    <div class="small text-muted">
+                                        @report.Description
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     FILTERS
+     ========================================================= -->
+
+<div class="card p-3 mb-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <h5 class="mb-1">
+
+                <i class="bi @selectedReport.Icon"></i>
+
+                @selectedReport.Title
+
+            </h5>
+
+            <div class="text-muted small">
+                Use the filters below and generate the selected report.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <form method="get"
+          asp-action="Index"
+          id="filterForm">
+
+        <input type="hidden"
+               name="ReportType"
+               value="@Model.ReportType" />
+
+
+        <div class="row g-2">
+
+            @if (!isRunningInventory && !isStoredItems)
+            {
+                <div class="col-md-2">
+
+                    <label class="form-label small">
+                        From Date
+                    </label>
+
+                    <input type="date"
+                           name="FromDate"
+                           value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
+                           class="form-control form-control-sm" />
+
+                </div>
+
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">
+                        To Date
+                    </label>
+
+                    <input type="date"
+                           name="ToDate"
+                           value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"
+                           class="form-control form-control-sm" />
+
+                </div>
+            }
+
+
+            <div class="col-md-@(isIssue ? "2" : "4")">
+
+                <label class="form-label small">
+                    Item
+                </label>
+
+                <select name="ItemId"
+                        class="form-select form-select-sm">
+
+                    <option value="">
+                        All Items
+                    </option>
+
+                    @foreach (var item in Model.Items)
+                    {
+                        <option value="@item.ItemId"
+                                selected="@(Model.ItemId == item.ItemId)">
+
+                            @item.ItemName
+
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            @if (isIssue)
+            {
+                <div class="col-md-2">
+
+                    <label class="form-label small">
+                        Employee / Name
+                    </label>
+
+                    <input type="text"
+                           name="EmployeeName"
+                           value="@Model.EmployeeName"
+                           class="form-control form-control-sm"
+                           placeholder="Search name" />
+
+                </div>
+
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">
+                        Room Number
+                    </label>
+
+                    <input type="text"
+                           name="RoomNumber"
+                           value="@Model.RoomNumber"
+                           class="form-control form-control-sm"
+                           placeholder="e.g. 204" />
+
+                </div>
+
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">
+                        Authorized By
+                    </label>
+
+                    <select name="AuthorizedByUserId"
+                            class="form-select form-select-sm">
+
+                        <option value="">
+                            All
+                        </option>
+
+                        @foreach (var user in Model.Users)
+                        {
+                            <option value="@user.UserId"
+                                    selected="@(Model.AuthorizedByUserId == user.UserId)">
+
+                                @user.FullName
+
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+            }
+
+        </div>
+
+
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+
+            <button type="submit"
+                    class="btn btn-dark btn-sm">
+
+                <i class="bi bi-search"></i>
+                Search
+
+            </button>
+
+
+            <a asp-action="Index"
+               asp-route-ReportType="@Model.ReportType"
+               class="btn btn-outline-secondary btn-sm">
+
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Reset
+
+            </a>
+
+
+            <button type="submit"
+                    formaction="@Url.Action("ExportExcel")"
+                    class="btn btn-success btn-sm">
+
+                <i class="bi bi-file-earmark-excel"></i>
+                Export Excel
+
+            </button>
+
+
+            <button type="submit"
+                    formaction="@Url.Action("ExportPdf")"
+                    class="btn btn-danger btn-sm">
+
+                <i class="bi bi-file-earmark-pdf"></i>
+                Export PDF
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     ISSUE REPORT
+     ========================================================= -->
+
+@if (isIssue)
+{
+    <div class="card p-3">
+
+        <p class="text-muted small mb-2">
+            @Model.Results.Count result(s) found.
+        </p>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Issued To</th>
+                        <th>Room</th>
+                        <th>Department</th>
+                        <th>Purpose</th>
+                        <th>Issued By</th>
+                        <th>Authorized By</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.Results.Any())
+                    {
+                        <tr>
+
+                            <td colspan="9"
+                                class="text-center text-muted py-4">
+
+                                No records match the selected filters.
+
+                            </td>
+
+                        </tr>
+                    }
+
+
+                    @foreach (var item in Model.Results)
+                    {
+                        <tr>
+
+                            <td>
+                                @(item.IssueDate.ToString("dd-MMM-yyyy HH:mm"))
+                            </td>
+
+                            <td class="fw-semibold">
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                @item.Quantity
+                            </td>
+
+                            <td>
+                                @item.IssuedToName
+                            </td>
+
+                            <td>
+                                @item.RoomNumber
+                            </td>
+
+                            <td>
+                                @item.Department
+                            </td>
+
+                            <td>
+                                @item.Purpose
+                            </td>
+
+                            <td>
+                                @item.IssuedByName
+                            </td>
+
+                            <td>
+                                @item.AuthorizedByName
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     STOCK / DISCARD / MISSING REPORT
+     ========================================================= -->
+
+@if (isStockTransaction)
+{
+    <div class="card p-3">
+
+        <p class="text-muted small mb-2">
+            @Model.StockResults.Count result(s) found.
+        </p>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Previous Stock</th>
+                        <th>New Stock</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                        <th>Remarks</th>
+                        <th>Performed By</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.StockResults.Any())
+                    {
+                        <tr>
+
+                            <td colspan="9"
+                                class="text-center text-muted py-4">
+
+                                No records match the selected filters.
+
+                            </td>
+
+                        </tr>
+                    }
+
+
+                    @foreach (var item in Model.StockResults)
+                    {
+                        <tr>
+
+                            <td>
+                                @(item.TransactionDate.ToString("dd-MMM-yyyy HH:mm"))
+                            </td>
+
+                            <td class="fw-semibold">
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                @item.Quantity
+                            </td>
+
+                            <td>
+                                @item.PreviousStock
+                            </td>
+
+                            <td>
+                                @item.NewStock
+                            </td>
+
+                            <td>
+                                ₹@item.Rate.ToString("0.00")
+                            </td>
+
+                            <td>
+                                ₹@item.Amount.ToString("0.00")
+                            </td>
+
+                            <td>
+                                @item.Remarks
+                            </td>
+
+                            <td>
+                                @item.PerformedByName
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     RUNNING INVENTORY REPORT
+     ========================================================= -->
+
+@if (isRunningInventory)
+{
+    <div class="card p-3">
+
+        <p class="text-muted small mb-2">
+            @Model.RunningInventoryResults.Count item(s) found.
+        </p>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Item</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Unit</th>
+                        <th>Running Stock</th>
+                        <th>1st Floor</th>
+                        <th>2nd Floor</th>
+                        <th>3rd Floor</th>
+                        <th>4th Floor</th>
+                        <th>5th Floor</th>
+                        <th>6th Floor</th>
+                        <th>Linen Room</th>
+                        <th>Laundry</th>
+                        <th>Discarded</th>
+                        <th>Missing</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.RunningInventoryResults.Any())
+                    {
+                        <tr>
+
+                            <td colspan="15"
+                                class="text-center text-muted py-4">
+
+                                No records found.
+
+                            </td>
+
+                        </tr>
+                    }
+
+
+                    @foreach (var item in Model.RunningInventoryResults)
+                    {
+                        <tr>
+
+                            <td class="fw-semibold">
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.SKU)
+                                    ? "—"
+                                    : item.SKU)
+                            </td>
+
+                            <td>
+                                @item.CategoryName
+                            </td>
+
+                            <td>
+                                @item.Unit
+                            </td>
+
+                            <td class="text-center fw-bold">
+                                @item.AvailableStock
+                            </td>
+
+                            <td class="text-center">
+                                @item.FirstFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.SecondFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.ThirdFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.FourthFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.FifthFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.SixthFloor
+                            </td>
+
+                            <td class="text-center">
+                                @item.LinenRoom
+                            </td>
+
+                            <td class="text-center">
+                                @item.Laundry
+                            </td>
+
+                            <td class="text-center fw-bold">
+                                @item.Discarded
+                            </td>
+
+                            <td class="text-center fw-bold">
+                                @item.Missing
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     STORED ITEMS REPORT
+     ========================================================= -->
+
+@if (isStoredItems)
+{
+    <div class="card p-3">
+
+        <p class="text-muted small mb-2">
+            @Model.StoredItemsResults.Count item(s) found.
+        </p>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Unit</th>
+                        <th>Rate</th>
+                        <th>Current Stock</th>
+                        <th>Minimum</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.StoredItemsResults.Any())
+                    {
+                        <tr>
+
+                            <td colspan="7"
+                                class="text-center text-muted py-4">
+
+                                No records found.
+
+                            </td>
+
+                        </tr>
+                    }
+
+
+                    @foreach (var item in Model.StoredItemsResults)
+                    {
+                        <tr>
+
+                            <td class="fw-semibold">
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                @item.Category
+                            </td>
+
+                            <td>
+                                @item.Unit
+                            </td>
+
+                            <td>
+                                ₹@item.Rate.ToString("0.00")
+                            </td>
+
+                            <td class="text-center fw-bold">
+                                @item.AvailableStock
+                            </td>
+
+                            <td class="text-center">
+                                @item.MinStockLevel
+                            </td>
+
+                            <td>
+
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Inactive
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+}

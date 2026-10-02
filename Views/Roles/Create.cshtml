@@ -1,0 +1,28 @@
+@model RoleFormViewModel
+@{
+    ViewData["Title"] = "Add Role";
+}
+<h3><i class="bi bi-plus-circle"></i> Add Role</h3>
+
+<div class="card p-4 mt-3" style="max-width:600px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Role Name</label>
+            <input asp-for="RoleName" class="form-control" placeholder="e.g. Supervisor, Front Desk" />
+            <span asp-validation-for="RoleName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description (optional)</label>
+            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="alert alert-info small">
+            <i class="bi bi-info-circle"></i> Adding a role only makes it selectable when creating/editing users.
+            Menu permissions for a brand-new role default to none until a developer adds specific
+            <code>[Authorize(Roles=...)]</code> rules for it in the application code.
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Create Role</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

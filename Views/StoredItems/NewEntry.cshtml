@@ -1,0 +1,1018 @@
+@{
+    ViewData["Title"] = "New Entry";
+
+    var items = ViewBag.Items as List<HotelHousekeepingApp.Models.StoredItem>
+        ?? new List<HotelHousekeepingApp.Models.StoredItem>();
+
+    int? selectedItemId = ViewBag.SelectedItemId as int?;
+}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">New Entry</h2>
+            <p class="text-muted">
+                Record new receiving, discarded or missing stock.
+            </p>
+        </div>
+
+        <a href="/StoredItems/Index"
+           class="btn btn-outline-secondary">
+            Back to Items
+        </a>
+    </div>
+
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        Stock Transaction
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post"
+                          action="/StoredItems/NewEntry"
+                          id="newEntryForm"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ITEM -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Item
+                            </label>
+
+                            <select name="StoredItemID"
+        id="StoredItemID"
+        class="form-select"
+        required>
+
+    <option value="">
+        -- Select Item --
+    </option>
+
+    @foreach (var item in items)
+    {
+        <option value="@item.StoredItemID"
+                data-stock="@item.AvailableStock"
+                data-running-stock="@((ViewBag.RunningStock as Dictionary<int, int>)?.GetValueOrDefault(item.StoredItemID) ?? 0)"
+                data-unit="@item.Unit"
+                data-rate="@item.Rate"
+                data-min="@item.MinStockLevel"
+                selected="@(selectedItemId == item.StoredItemID ? "selected" : null)">
+            @item.ItemName
+        </option>
+    }
+
+</select>
+
+                        </div>
+
+
+                        <!-- STOCK INFORMATION -->
+
+                        <div class="row mb-4">
+
+                            <div class="col-md-6">
+
+                                <div class="card bg-light">
+
+                                    <div class="card-body">
+
+                                        <small class="text-muted">
+                                            Current Stock
+                                        </small>
+
+                                        <h3 id="currentStock">
+                                            0
+                                        </h3>
+
+                                        <span id="stockUnit">
+                                            pcs
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <div class="card bg-light">
+
+                                    <div class="card-body">
+
+                                        <small class="text-muted">
+                                            Minimum Stock
+                                        </small>
+
+                                        <h3 id="minimumStock">
+                                            0
+                                        </h3>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ENTRY TYPE -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Entry Type
+                            </label>
+
+                            <select name="TransactionType"
+                                    id="TransactionType"
+                                    class="form-select"
+                                    required>
+
+                                <option value="RECEIVING">
+                                    New Receiving
+                                </option>
+
+                                <option value="DISCARD">
+                                    Discarded
+                                </option>
+
+                                <option value="MISSING">
+                                    Missing
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- QUANTITY -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Quantity
+                            </label>
+
+                            <input type="number"
+                                   name="Quantity"
+                                   id="Quantity"
+                                   class="form-control"
+                                   min="1"
+                                   value="1"
+                                   required />
+
+                            <small class="text-muted"
+                                   id="quantityHelp">
+                                Quantity received into stock.
+                            </small>
+
+                        </div>
+
+
+                        <!-- RATE -->
+
+                        <div class="mb-4"
+                             id="rateSection">
+
+                            <label class="form-label fw-bold">
+                                Rate per Unit
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    ₹
+                                </span>
+
+                                <input type="number"
+                                         name="Rate"
+                                        id="Rate"
+                              class="form-control"
+                                        min="0"
+                                           step="0.01"
+                                   value="0" />
+
+                            </div>
+
+                            <small class="text-muted">
+                                Enter the rate for this receiving entry.
+                            </small>
+
+                        </div>
+
+
+                        <!-- SUMMARY -->
+
+                        <div class="card mb-4">
+
+                            <div class="card-header">
+                                <strong>
+                                    Transaction Summary
+                                </strong>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    <div class="col-md-4">
+
+                                        <small class="text-muted">
+                                            Previous Stock
+                                        </small>
+
+                                        <h5 id="summaryPrevious">
+                                            0
+                                        </h5>
+
+                                    </div>
+
+
+                                    <div class="col-md-4">
+
+                                        <small class="text-muted">
+                                            New Stock
+                                        </small>
+
+                                        <h5 id="summaryNew">
+                                            0
+                                        </h5>
+
+                                    </div>
+
+
+                                    <div class="col-md-4">
+
+                                        <small class="text-muted">
+                                            Transaction Value
+                                        </small>
+
+                                        <h5 id="summaryAmount">
+                                            ₹0.00
+                                        </h5>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- REMARKS -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Remarks
+                            </label>
+
+                            <textarea name="Remarks"
+                                      id="Remarks"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="PO number, reason, or other remarks"></textarea>
+
+                        </div>
+
+
+                        <!-- ATTACHMENT -->
+
+                        <!-- ATTACHMENT -->
+
+                          <div class="mb-4"
+                        id="attachmentSection"
+                          style="display:none;">
+
+                            <label for="attachmentFile"
+                                   class="form-label fw-bold">
+
+                                Attachment
+                                <span class="text-muted fw-normal">
+                                    (Optional)
+                                </span>
+
+                            </label>
+
+                            <input type="file"
+                                   name="attachmentFile"
+                                   id="attachmentFile"
+                                   class="form-control"
+                                   accept=".jpg,.jpeg,.png,.pdf" />
+
+                            <div class="form-text">
+                                Allowed: JPG, JPEG, PNG, PDF
+                                <br />
+                                Maximum file size: 200 KB
+                            </div>
+
+                            <div id="attachmentError"
+                                 class="alert alert-danger mt-2"
+                                 style="display:none;">
+                            </div>
+
+                            <div id="attachmentPreview"
+                                 class="mt-3"
+                                 style="display:none;">
+
+                                <div class="card">
+
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+
+                                        <strong>
+                                            Attachment Preview
+                                        </strong>
+
+                                        <button type="button"
+                                                id="removeAttachment"
+                                                class="btn btn-sm btn-outline-danger">
+
+                                            Remove
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="card-body text-center">
+
+                                        <div id="imagePreviewContainer"
+                                             style="display:none;">
+
+                                            <img id="imagePreview"
+                                                 src=""
+                                                 alt="Attachment Preview"
+                                                 class="img-fluid rounded"
+                                                 style="max-height:400px;" />
+
+                                        </div>
+
+                                        <div id="pdfPreviewContainer"
+                                             style="display:none;">
+
+                                            <iframe id="pdfPreview"
+                                                    src=""
+                                                    style="width:100%; height:500px; border:1px solid #ddd; border-radius:6px;">
+                                            </iframe>
+
+                                        </div>
+
+                                        <div id="filePreviewName"
+                                             class="mt-2 text-muted">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- WARNING -->
+
+                        <div id="stockWarning"
+                             class="alert alert-warning"
+                             style="display:none;">
+
+                            <strong>
+                                Warning:
+                            </strong>
+
+                            <span id="stockWarningText"></span>
+
+                        </div>
+
+
+                        <!-- BUTTONS -->
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    id="saveButton"
+                                    class="btn btn-primary">
+
+                                Save Entry
+
+                            </button>
+
+                            <a href="/StoredItems/Index"
+                               class="btn btn-secondary">
+
+                                Cancel
+
+                            </a>
+
+                        </div>
+
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts
+{
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var itemSelect =
+                document.getElementById("StoredItemID");
+
+            var transactionType =
+                document.getElementById("TransactionType");
+
+            var quantity =
+                document.getElementById("Quantity");
+
+            var rate =
+                document.getElementById("Rate");
+
+            var rateSection =
+                document.getElementById("rateSection");
+
+            var currentStock =
+                document.getElementById("currentStock");
+
+            var stockUnit =
+                document.getElementById("stockUnit");
+
+            var minimumStock =
+                document.getElementById("minimumStock");
+
+            var summaryPrevious =
+                document.getElementById("summaryPrevious");
+
+            var summaryNew =
+                document.getElementById("summaryNew");
+
+            var summaryAmount =
+                document.getElementById("summaryAmount");
+
+            var quantityHelp =
+                document.getElementById("quantityHelp");
+
+            var stockWarning =
+                document.getElementById("stockWarning");
+
+            var stockWarningText =
+                document.getElementById("stockWarningText");
+
+            var saveButton =
+                document.getElementById("saveButton");
+             var attachmentSection =
+             document.getElementById("attachmentSection");
+
+
+            /*
+             * ---------------------------------------------------------
+             * ITEM INFORMATION
+             * ---------------------------------------------------------
+             */
+
+            function getItem()
+            {
+                var option =
+                    itemSelect.options[
+                        itemSelect.selectedIndex
+                    ];
+
+                if (!option || !option.value)
+                {
+                    return null;
+                }
+
+                return {
+                    stock: parseInt(
+                        option.getAttribute("data-stock") || "0"
+                    ),
+
+                    runningStock: parseInt(
+                        option.getAttribute("data-running-stock") || "0"
+                    ),
+
+                    unit:
+                        option.getAttribute("data-unit") || "pcs",
+
+                    rate: parseFloat(
+                        option.getAttribute("data-rate") || "0"
+                    ),
+
+                    minimum: parseInt(
+                        option.getAttribute("data-min") || "0"
+                    )
+                };
+            }
+
+
+            /*
+             * ---------------------------------------------------------
+             * STOCK SCREEN UPDATE
+             * ---------------------------------------------------------
+             */
+
+            function updateScreen()
+            {
+                var item = getItem();
+
+                var type =
+                    transactionType.value;
+                
+                 if (attachmentSection)
+{
+    if (type === "DISCARD")
+    {
+        attachmentSection.style.display = "block";
+    }
+    else
+    {
+        attachmentSection.style.display = "none";
+    }
+}
+
+                var qty =
+                    parseInt(quantity.value || "0");
+
+                var enteredRate =
+                    parseFloat(rate.value || "0");
+
+
+                stockWarning.style.display = "none";
+
+                saveButton.disabled = false;
+
+
+                if (!item)
+                {
+                    currentStock.innerText = "0";
+                    stockUnit.innerText = "pcs";
+                    minimumStock.innerText = "0";
+
+                    summaryPrevious.innerText = "0";
+                    summaryNew.innerText = "0";
+                    summaryAmount.innerText = "₹0.00";
+
+                    return;
+                }
+
+
+                var displayedStock =
+                    type === "RECEIVING"
+                        ? item.stock
+                        : item.runningStock;
+
+                currentStock.innerText =
+                    displayedStock.toLocaleString("en-IN");
+
+                stockUnit.innerText =
+                    item.unit;
+
+                minimumStock.innerText =
+                    item.minimum.toLocaleString("en-IN");
+
+                var baseStock =
+                    type === "RECEIVING"
+                        ? item.stock
+                        : item.runningStock;
+
+                summaryPrevious.innerText =
+                    baseStock.toLocaleString("en-IN");
+
+
+                /*
+                 * -----------------------------------------------------
+                 * RECEIVING
+                 * -----------------------------------------------------
+                 */
+
+                if (type === "RECEIVING")
+                {
+                    rateSection.style.display = "block";
+
+                    quantityHelp.innerText =
+                        "Quantity received into stock.";
+
+                    var receivingStock =
+                        item.stock + qty;
+
+                    var receivingAmount =
+                        qty * enteredRate;
+
+                    summaryNew.innerText =
+                        receivingStock.toLocaleString("en-IN");
+
+                    summaryAmount.innerText =
+                        "₹" +
+                        receivingAmount.toLocaleString(
+                            "en-IN",
+                            {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }
+                        );
+
+                    return;
+                }
+
+
+                /*
+                 * -----------------------------------------------------
+                 * DISCARD / MISSING
+                 * -----------------------------------------------------
+                 */
+
+                rateSection.style.display = "none";
+
+
+                if (type === "DISCARD")
+                {
+                    quantityHelp.innerText =
+                        "Quantity discarded from stock.";
+                }
+                else
+                {
+                    quantityHelp.innerText =
+                        "Quantity marked as missing.";
+                }
+
+
+                var adjustedStock =
+                    item.runningStock - qty;
+
+
+                if (adjustedStock < 0)
+                {
+                    summaryNew.innerText = "0";
+                    summaryAmount.innerText = "₹0.00";
+
+                    stockWarningText.innerText =
+                        "Quantity cannot be greater than Running Inventory stock.";
+
+                    stockWarning.style.display = "block";
+
+                    saveButton.disabled = true;
+
+                    return;
+                }
+
+
+                var adjustmentAmount =
+                    qty * item.rate;
+
+                summaryNew.innerText =
+                    adjustedStock.toLocaleString("en-IN");
+
+                summaryAmount.innerText =
+                    "₹" +
+                    adjustmentAmount.toLocaleString(
+                        "en-IN",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
+            }
+
+
+            /*
+             * ---------------------------------------------------------
+             * ITEM CHANGE
+             * ---------------------------------------------------------
+             */
+
+           itemSelect.addEventListener(
+    "change",
+    function ()
+    {
+        var item = getItem();
+
+        if (item)
+        {
+            rate.value =
+                item.rate.toFixed(2);
+        }
+        else
+        {
+            rate.value = "0";
+        }
+
+        updateScreen();
+    }
+);
+
+
+            /*
+             * ---------------------------------------------------------
+             * TRANSACTION TYPE CHANGE
+             * ---------------------------------------------------------
+             */
+
+            transactionType.addEventListener(
+                "change",
+                updateScreen
+            );
+
+
+            /*
+             * ---------------------------------------------------------
+             * QUANTITY CHANGE
+             * ---------------------------------------------------------
+             */
+
+            quantity.addEventListener(
+                "input",
+                updateScreen
+            );
+
+
+            /*
+             * ---------------------------------------------------------
+             * RATE CHANGE
+             * ---------------------------------------------------------
+             */
+
+            quantity.addEventListener(
+    "input",
+    updateScreen
+);
+
+
+rate.addEventListener(
+    "input",
+    updateScreen
+);
+
+
+var initialItem = getItem();
+
+if (initialItem)
+{
+    rate.value =
+        initialItem.rate.toFixed(2);
+}
+
+updateScreen();
+
+            /*
+             * ---------------------------------------------------------
+             * ATTACHMENT
+             * ---------------------------------------------------------
+             */
+
+            var attachmentFile =
+                document.getElementById("attachmentFile");
+
+            var attachmentError =
+                document.getElementById("attachmentError");
+
+            var attachmentPreview =
+                document.getElementById("attachmentPreview");
+
+            var imagePreviewContainer =
+                document.getElementById("imagePreviewContainer");
+
+            var imagePreview =
+                document.getElementById("imagePreview");
+
+            var pdfPreviewContainer =
+                document.getElementById("pdfPreviewContainer");
+
+            var pdfPreview =
+                document.getElementById("pdfPreview");
+
+            var filePreviewName =
+                document.getElementById("filePreviewName");
+
+            var removeAttachment =
+                document.getElementById("removeAttachment");
+
+
+            var maxFileSize =
+                200 * 1024;
+
+
+            var allowedExtensions =
+                [
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".pdf"
+                ];
+
+
+            attachmentFile.addEventListener(
+                "change",
+                function ()
+                {
+                    attachmentError.style.display = "none";
+                    attachmentError.innerText = "";
+
+                    attachmentPreview.style.display = "none";
+
+                    imagePreviewContainer.style.display = "none";
+                    pdfPreviewContainer.style.display = "none";
+
+                    imagePreview.src = "";
+                    pdfPreview.src = "";
+                    filePreviewName.innerText = "";
+
+
+                    var file =
+                        attachmentFile.files[0];
+
+
+                    /*
+                     * No attachment selected
+                     */
+
+                    if (!file)
+                    {
+                        return;
+                    }
+
+
+                    /*
+                     * File size validation
+                     */
+
+                    if (file.size > maxFileSize)
+                    {
+                        attachmentError.innerText =
+                            "File size cannot be more than 200 KB.";
+
+                        attachmentError.style.display = "block";
+
+                        attachmentFile.value = "";
+
+                        return;
+                    }
+
+
+                    /*
+                     * Extension validation
+                     */
+
+                    var fileName =
+                        file.name.toLowerCase();
+
+                    var extension =
+                        fileName.substring(
+                            fileName.lastIndexOf(".")
+                        );
+
+
+                    if (!allowedExtensions.includes(extension))
+                    {
+                        attachmentError.innerText =
+                            "Invalid file type. Allowed files are JPG, JPEG, PNG and PDF.";
+
+                        attachmentError.style.display = "block";
+
+                        attachmentFile.value = "";
+
+                        return;
+                    }
+
+
+                    /*
+                     * Display file name
+                     */
+
+                    filePreviewName.innerText =
+                        file.name +
+                        " (" +
+                        Math.ceil(file.size / 1024) +
+                        " KB)";
+
+
+                    /*
+                     * Create preview
+                     */
+
+                    var objectUrl =
+                        URL.createObjectURL(file);
+
+
+                    if (
+                        extension === ".jpg" ||
+                        extension === ".jpeg" ||
+                        extension === ".png"
+                    )
+                    {
+                        imagePreview.src =
+                            objectUrl;
+
+                        imagePreviewContainer.style.display =
+                            "block";
+
+                        pdfPreviewContainer.style.display =
+                            "none";
+                    }
+                    else if (extension === ".pdf")
+                    {
+                        pdfPreview.src =
+                            objectUrl;
+
+                        pdfPreviewContainer.style.display =
+                            "block";
+
+                        imagePreviewContainer.style.display =
+                            "none";
+                    }
+
+
+                    attachmentPreview.style.display =
+                        "block";
+                }
+            );
+
+
+            /*
+             * ---------------------------------------------------------
+             * REMOVE ATTACHMENT
+             * ---------------------------------------------------------
+             */
+
+            removeAttachment.addEventListener(
+                "click",
+                function ()
+                {
+                    attachmentFile.value = "";
+
+                    attachmentError.innerText = "";
+                    attachmentError.style.display = "none";
+
+                    attachmentPreview.style.display = "none";
+
+                    imagePreviewContainer.style.display = "none";
+                    pdfPreviewContainer.style.display = "none";
+
+                    imagePreview.src = "";
+                    pdfPreview.src = "";
+                    filePreviewName.innerText = "";
+                }
+            );
+
+
+            /*
+             * ---------------------------------------------------------
+             * INITIAL SCREEN
+             * ---------------------------------------------------------
+             */
+
+            var initialItem = getItem();
+
+            if (initialItem)
+            {
+                rate.value = initialItem.rate.toFixed(2);
+            }
+
+            updateScreen();
+
+        });
+
+    </script>
+}

@@ -1,0 +1,463 @@
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+
+    var monthStart = new DateTime(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    ).ToString("yyyy-MM-dd");
+}
+
+<style>
+    /* =========================================================
+       DASHBOARD LAYOUT
+       ========================================================= */
+
+    .dashboard-overview {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        width: 100%;
+    }
+
+    .dashboard-overview .overview-card {
+        width: 33.333333% !important;
+        flex: 0 0 33.333333% !important;
+    }
+
+    /* Make the stat cards fill their columns */
+    .dashboard-overview .stat-card {
+        width: 100%;
+        min-height: 150px;
+        position: relative;
+    }
+
+    /* Keep the lower dashboard sections aligned */
+    .dashboard-section {
+        height: 100%;
+    }
+
+    .dashboard-section .card {
+        height: 100%;
+    }
+
+    /* Tables */
+    .dashboard-section table {
+        width: 100%;
+    }
+
+    .dashboard-section th {
+        white-space: nowrap;
+    }
+
+    /* Small screen protection */
+    @@media (max-width: 767.98px) {
+
+        .dashboard-overview {
+            flex-wrap: wrap !important;
+        }
+
+        .dashboard-overview .overview-card {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+    }
+</style>
+
+
+<!-- =========================================================
+     HOTEL HEADER
+     ========================================================= -->
+
+<div class="mb-1">
+    <h3 class="mb-0 d-flex align-items-center">
+    <img src="~/images/abc.png"
+         alt="Property_Name"
+         style="height:45px; width:auto; margin-right:10px;" />
+
+    @Model.HotelName
+</h3>
+
+    <div class="text-muted small">
+        Housekeeping Inventory Dashboard
+    </div>
+</div>
+
+
+<!-- =========================================================
+     OVERVIEW TITLE
+     ========================================================= -->
+
+<h5 class="mt-3 mb-3">
+    <i class="bi bi-speedometer2"></i>
+    Overview
+</h5>
+
+
+<!-- =========================================================
+     OVERVIEW STAT CARDS
+     ========================================================= -->
+
+<div class="row g-3 mb-4 dashboard-overview">
+
+    <!-- =====================================================
+         TOTAL ACTIVE ITEMS
+         ===================================================== -->
+
+    <div class="overview-card">
+
+        <a href="@Url.Action("Index", "Inventory")"
+           class="text-decoration-none">
+
+            <div class="stat-card bg-total">
+
+                <div class="small">
+                    Total Active Items
+                </div>
+
+                <div class="stat-value">
+                    @Model.TotalItems
+                </div>
+
+                <i class="bi bi-box-seam"></i>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         ISSUED TODAY / THIS MONTH
+         ===================================================== -->
+
+    <div class="overview-card">
+
+        <div class="stat-card bg-issued">
+
+            <div class="small">
+                Issued Today / This Month
+            </div>
+
+            <div class="stat-value">
+
+                <a href="@Url.Action(
+                    "Index",
+                    "Reports",
+                    new
+                    {
+                        FromDate = today,
+                        ToDate = today
+                    })"
+                   class="text-white text-decoration-none"
+                   title="View today's issues">
+
+                    @Model.TotalIssuedToday
+
+                </a>
+
+                <span class="fs-6">
+                    /
+                </span>
+
+                <a href="@Url.Action(
+                    "Index",
+                    "Reports",
+                    new
+                    {
+                        FromDate = monthStart,
+                        ToDate = today
+                    })"
+                   class="text-white text-decoration-none fs-6"
+                   title="View this month's issues">
+
+                    @Model.TotalIssuedThisMonth
+
+                </a>
+
+            </div>
+
+            <i class="bi bi-box-arrow-right"></i>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LOW STOCK ALERTS
+         ===================================================== -->
+
+    <div class="overview-card">
+
+        <a href="@Url.Action(
+            "Index",
+            "Inventory",
+            new
+            {
+                lowStockOnly = true
+            })"
+           class="text-decoration-none">
+
+            <div class="stat-card bg-low">
+
+                <div class="small">
+                    Low Stock Alerts
+                </div>
+
+                <div class="stat-value">
+                    @Model.LowStockCount
+                </div>
+
+                <i class="bi bi-exclamation-triangle"></i>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     LOW STOCK ITEMS / RECENT ISSUES
+     ========================================================= -->
+
+<div class="row g-3 dashboard-section">
+
+    <!-- =====================================================
+         LOW STOCK ITEMS
+         ===================================================== -->
+
+    <div class="col-lg-6">
+
+        <div class="card p-3">
+
+            <h5>
+                <i class="bi bi-exclamation-triangle text-danger"></i>
+                Low Stock Items
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-sm table-striped mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>SKU</th>
+                            <th>Available</th>
+                            <th>Min Level</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (!Model.LowStockItems.Any())
+                        {
+                            <tr>
+                                <td colspan="4"
+                                    class="text-center text-muted">
+                                    No low stock items. Everything looks good.
+                                </td>
+                            </tr>
+                        }
+
+                        @foreach (var item in Model.LowStockItems)
+                        {
+                            <tr>
+
+                                <td>
+                                    @item.ItemName
+                                </td>
+
+                                <td>
+                                    @item.SKU
+                                </td>
+
+                                <td>
+                                    <span class="badge badge-low-stock">
+                                        @item.AvailableStock
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @item.MinStockLevel
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT ISSUES
+         ===================================================== -->
+
+    <div class="col-lg-6">
+
+        <div class="card p-3">
+
+            <h5>
+                <i class="bi bi-clock-history"></i>
+                Recent Issues
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-sm table-striped mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Issued To</th>
+                            <th>Room</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (!Model.RecentIssues.Any())
+                        {
+                            <tr>
+                                <td colspan="5"
+                                    class="text-center text-muted">
+                                    No issues recorded yet.
+                                </td>
+                            </tr>
+                        }
+
+                        @foreach (var i in Model.RecentIssues)
+                        {
+                            <tr>
+
+                                <td>
+                                    @(i.IssueDate.ToString("dd-MMM-yyyy HH:mm"))
+                                </td>
+
+                                <td>
+                                    @i.ItemName
+                                </td>
+
+                                <td>
+                                    @i.Quantity
+                                </td>
+
+                                <td>
+                                    @i.IssuedToName
+                                </td>
+
+                                <td>
+                                    @i.RoomNumber
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     RECENT STOCK RECEIVED
+     ========================================================= -->
+
+<div class="row g-3 mt-1 dashboard-section">
+
+    <!-- =====================================================
+         RECENT STOCK RECEIVED
+         ===================================================== -->
+
+    <div class="col-lg-6">
+
+        <div class="card p-3">
+
+            <h5>
+                <i class="bi bi-arrow-down-circle text-success"></i>
+                Recent Stock Received
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-sm table-striped mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>By</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @if (!Model.RecentStockIns.Any())
+                        {
+                            <tr>
+                                <td colspan="4"
+                                    class="text-center text-muted">
+                                    No stock-in records yet.
+                                </td>
+                            </tr>
+                        }
+
+                        @foreach (var s in Model.RecentStockIns)
+                        {
+                            <tr>
+
+                                <td>
+                                    @(s.TransactionDate.ToLocalTime().ToString("dd-MMM HH:mm"))
+                                </td>
+
+                                <td>
+                                    @s.ItemName
+                                </td>
+
+                                <td>
+                                    @s.Quantity
+                                </td>
+
+                                <td>
+                                    @s.PerformedByName
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

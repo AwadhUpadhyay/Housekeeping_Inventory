@@ -1,0 +1,304 @@
+@model IEnumerable<HotelHousekeepingApp.Models.StockTransaction>
+
+@{
+    ViewData["Title"] = "Stock History";
+
+    var transactions = Model?.ToList()
+        ?? new List<HotelHousekeepingApp.Models.StockTransaction>();
+
+    var totalTransactions = transactions.Count;
+
+    var totalStockIn = transactions
+        .Where(x => x.TransactionType == "STOCK_IN" || x.TransactionType == "NEW")
+        .Sum(x => x.Quantity);
+
+    var totalDiscarded = transactions
+        .Where(x => x.TransactionType == "DISCARD")
+        .Sum(x => x.Quantity);
+
+    var totalMissing = transactions
+        .Where(x => x.TransactionType == "MISSING")
+        .Sum(x => x.Quantity);
+
+    var totalValue = transactions.Sum(x => x.Amount);
+
+    var attachments =
+        ViewBag.Attachments as
+        Dictionary<int, HotelHousekeepingApp.Controllers.StoredItemsController.AttachmentInfo>
+        ?? new Dictionary<int, HotelHousekeepingApp.Controllers.StoredItemsController.AttachmentInfo>();
+
+    var item = ViewBag.Item as HotelHousekeepingApp.Models.StoredItem;
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-clock-history"></i>
+                Stock History
+            </h2>
+
+            @if (item != null)
+            {
+                <p class="text-muted mb-0">
+                    @item.ItemName
+                </p>
+            }
+            else
+            {
+                <p class="text-muted mb-0">
+                    Complete transaction history for this inventory item.
+                </p>
+            }
+        </div>
+
+        <div class="d-flex gap-2">
+
+            @if (item != null)
+            {
+                <a asp-action="DiscardedItems"
+                   asp-route-itemId="@item.StoredItemID"
+                   class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                    Discarded Items
+                </a>
+            }
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">TRANSACTIONS</div>
+                    <div class="fs-3 fw-bold">@totalTransactions</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">STOCK IN</div>
+                    <div class="fs-3 fw-bold text-success">@totalStockIn</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">DISCARDED</div>
+                    <div class="fs-3 fw-bold text-danger">@totalDiscarded</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">MISSING</div>
+                    <div class="fs-3 fw-bold text-warning">@totalMissing</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i>
+                    Transaction History
+                </h5>
+
+                <span class="badge bg-light text-dark">
+                    @totalTransactions Transactions
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+
+            @if (!transactions.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">No Transactions Found</h5>
+
+                    <p class="text-muted">
+                        There are no stock transactions for this item yet.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Transaction</th>
+                                <th>Quantity</th>
+                                <th>Previous Stock</th>
+                                <th>New Stock</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                                <th>Remarks</th>
+                                <th>Performed By</th>
+                                <th>Attachment</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var transaction in transactions.OrderByDescending(x => x.TransactionDate))
+                            {
+                                var transactionClass =
+                                    transaction.TransactionType switch
+                                    {
+                                        "STOCK_IN" => "success",
+                                        "NEW" => "primary",
+                                        "DISCARD" => "danger",
+                                        "MISSING" => "warning",
+                                        _ => "secondary"
+                                    };
+
+                                var transactionIcon =
+                                    transaction.TransactionType switch
+                                    {
+                                        "STOCK_IN" => "bi-box-arrow-in-down",
+                                        "NEW" => "bi-box-seam",
+                                        "DISCARD" => "bi-trash",
+                                        "MISSING" => "bi-question-circle",
+                                        _ => "bi-arrow-left-right"
+                                    };
+
+                                var hasAttachment =
+                                    attachments.ContainsKey(
+                                        transaction.StockTransactionId);
+
+                                <tr>
+
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @transaction.TransactionDate.ToString("dd-MMM-yyyy")
+                                        </div>
+                                        <small class="text-muted">
+                                            @transaction.TransactionDate.ToString("hh:mm tt")
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-@transactionClass">
+                                            <i class="bi @transactionIcon"></i>
+                                            @transaction.TransactionType
+                                        </span>
+                                    </td>
+
+                                    <td><strong>@transaction.Quantity</strong></td>
+
+                                    <td>@transaction.PreviousStock</td>
+
+                                    <td><strong>@transaction.NewStock</strong></td>
+
+                                    <td>₹@transaction.Rate.ToString("N2")</td>
+
+                                    <td>
+                                        <strong>
+                                            ₹@transaction.Amount.ToString("N2")
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @if (string.IsNullOrWhiteSpace(transaction.Remarks))
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                        else
+                                        {
+                                            @transaction.Remarks
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (string.IsNullOrWhiteSpace(transaction.PerformedByName))
+                                        {
+                                            <span class="text-muted">
+                                                User #@transaction.PerformedByUserId
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @transaction.PerformedByName
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (hasAttachment)
+                                        {
+                                            var attachment =
+                                                attachments[transaction.StockTransactionId];
+
+                                            if (attachment.Path != null)
+                                            {
+                                                if (attachment.ContentType != null &&
+                                                    attachment.ContentType.StartsWith("image/"))
+                                                {
+                                                    <a href="@attachment.Path"
+                                                       target="_blank"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="View image">
+                                                        <i class="bi bi-image"></i>
+                                                        View
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@attachment.Path"
+                                                       target="_blank"
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       title="Open PDF">
+                                                        <i class="bi bi-file-earmark-pdf"></i>
+                                                        PDF
+                                                    </a>
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

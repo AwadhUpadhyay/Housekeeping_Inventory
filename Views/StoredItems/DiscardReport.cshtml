@@ -1,0 +1,343 @@
+@model IEnumerable<HotelHousekeepingApp.Controllers.StoredItemsController.DiscardedItemViewModel>
+
+@{
+    ViewData["Title"] = "Discarded Items Report";
+
+    var records = Model?.ToList()
+        ?? new List<HotelHousekeepingApp.Controllers.StoredItemsController.DiscardedItemViewModel>();
+
+    var totalTransactions = records.Count;
+    var totalQuantity = records.Sum(x => x.Quantity);
+    var totalValue = records.Sum(x => x.Amount);
+    var withAttachment = records.Count(x => x.HasAttachment);
+
+    var fromDate = ViewBag.FromDate?.ToString() ?? "All Dates";
+    var toDate = ViewBag.ToDate?.ToString() ?? "All Dates";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Discarded Items Report</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <style>
+        body {
+            background: #fff;
+            color: #212529;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #dc3545;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .evidence-image {
+            max-width: 360px;
+            max-height: 260px;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            padding: 4px;
+            background: #fff;
+        }
+
+        .evidence-section {
+            page-break-inside: avoid;
+            margin-top: 18px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .record-card {
+            page-break-inside: avoid;
+            margin-bottom: 20px;
+        }
+
+       @@media print
+{
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                font-size: 11px;
+            }
+
+            .container-fluid {
+                padding: 0 !important;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid p-4">
+
+    <div class="no-print d-flex justify-content-end gap-2 mb-3">
+        <button type="button"
+                class="btn btn-danger"
+                onclick="window.print();">
+            <i class="bi bi-printer"></i>
+            Print / Save as PDF
+        </button>
+
+        <button type="button"
+                class="btn btn-outline-secondary"
+                onclick="window.close();">
+            Close
+        </button>
+    </div>
+
+    <div class="report-header">
+
+        <h2 class="fw-bold text-danger mb-1">
+            Housekeeping Inventory
+        </h2>
+
+        <h4 class="mb-1">
+            Discarded Items Report
+        </h4>
+
+        <div class="text-muted">
+            Report Period:
+            <strong>@fromDate</strong>
+            to
+            <strong>@toDate</strong>
+        </div>
+
+        <div class="small text-muted mt-1">
+            Generated on @DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt")
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-3">
+            <div class="border rounded p-3">
+                <small class="text-muted">TRANSACTIONS</small>
+                <div class="fs-4 fw-bold">@totalTransactions</div>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="border rounded p-3">
+                <small class="text-muted">TOTAL QUANTITY</small>
+                <div class="fs-4 fw-bold">@totalQuantity</div>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="border rounded p-3">
+                <small class="text-muted">TOTAL VALUE</small>
+                <div class="fs-4 fw-bold">
+                    ₹@totalValue.ToString("N2")
+                </div>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="border rounded p-3">
+                <small class="text-muted">WITH EVIDENCE</small>
+                <div class="fs-4 fw-bold">
+                    @withAttachment
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (!records.Any())
+    {
+        <div class="alert alert-secondary">
+            No discarded records found for the selected period.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-sm align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>Date</th>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Previous</th>
+                    <th>Remaining</th>
+                    <th>Discarded By</th>
+                    <th>Remarks</th>
+                    <th>Evidence</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var record in records)
+                {
+                    <tr>
+
+                        <td>
+                            @record.TransactionDate.ToString("dd-MMM-yyyy")
+                            <br />
+                            <small>
+                                @record.TransactionDate.ToString("hh:mm tt")
+                            </small>
+                        </td>
+
+                        <td>
+                            <strong>@record.ItemName</strong>
+
+                            @if (!string.IsNullOrWhiteSpace(record.Category))
+                            {
+                                <br />
+                                <small>@record.Category</small>
+                            }
+                        </td>
+
+                        <td>@record.Quantity</td>
+
+                        <td>
+                            ₹@record.Rate.ToString("N2")
+                        </td>
+
+                        <td>
+                            ₹@record.Amount.ToString("N2")
+                        </td>
+
+                        <td>@record.PreviousStock</td>
+
+                        <td>@record.NewStock</td>
+
+                        <td>
+                            @(string.IsNullOrWhiteSpace(record.PerformedByName)
+                                ? $"User #{record.PerformedByUserId}"
+                                : record.PerformedByName)
+                        </td>
+
+                        <td>
+                            @(string.IsNullOrWhiteSpace(record.Remarks)
+                                ? "—"
+                                : record.Remarks)
+                        </td>
+
+                        <td>
+                            @if (record.HasAttachment)
+                            {
+                                if (record.AttachmentContentType?.StartsWith("image/") == true)
+                                {
+                                    <span>Image attached</span>
+                                }
+                                else
+                                {
+                                    <span>PDF attached</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </td>
+
+                    </tr>
+
+                    @if (record.HasAttachment &&
+                         record.AttachmentContentType?.StartsWith("image/") == true)
+                    {
+                        <tr>
+                            <td colspan="10">
+
+                                <div class="evidence-section">
+
+                                    <strong>
+                                        Evidence -
+                                        @record.ItemName
+                                        -
+                                        @record.TransactionDate.ToString("dd-MMM-yyyy hh:mm tt")
+                                    </strong>
+
+                                    <div class="mt-2">
+
+                                        <img src="@record.AttachmentPath"
+                                             class="evidence-image"
+                                             alt="Discard evidence" />
+
+                                    </div>
+
+                                    <small class="text-muted">
+                                        @record.AttachmentFileName
+                                    </small>
+
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+                    else if (record.HasAttachment)
+                    {
+                        <tr>
+                            <td colspan="10">
+
+                                <div class="evidence-section">
+
+                                    <strong>
+                                        Evidence:
+                                    </strong>
+
+                                    @record.AttachmentFileName
+
+                                    <div class="small text-muted mt-1">
+                                        PDF attachment is available from the Discarded Items Dashboard.
+                                    </div>
+
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+    }
+
+    <div class="mt-5 pt-3 border-top">
+
+        <div class="row">
+
+            <div class="col-6">
+                <small class="text-muted">
+                    Housekeeping / Store
+                </small>
+            </div>
+
+            <div class="col-6 text-end">
+                <small class="text-muted">
+                    Generated by Hotel Housekeeping Inventory System
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

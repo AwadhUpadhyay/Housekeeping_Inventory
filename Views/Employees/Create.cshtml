@@ -1,0 +1,40 @@
+@model EmployeeFormViewModel
+@{
+    ViewData["Title"] = "Add Employee";
+}
+<h3><i class="bi bi-person-plus"></i> Add Employee</h3>
+
+<div class="card p-4 mt-3" style="max-width:600px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Employee Code</label>
+            <input asp-for="EmployeeCode" class="form-control" />
+            <span asp-validation-for="EmployeeCode" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input asp-for="Department" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Designation</label>
+            <input asp-for="Designation" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label class="form-check-label">Active</label>
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

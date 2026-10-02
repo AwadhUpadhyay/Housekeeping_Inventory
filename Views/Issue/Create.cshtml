@@ -1,0 +1,183 @@
+@model IssueItemViewModel
+@{
+    ViewData["Title"] = "Issue Item";
+}
+<h3><i class="bi bi-box-arrow-right"></i> Issue Item</h3>
+
+<div class="card p-4 mt-3" style="max-width:750px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Item (choose from Stock Inventory)</label>
+
+                <div class="input-group">
+                    <select asp-for="ItemId"
+                            id="ItemId"
+                            class="form-select">
+                        <option value="">-- Select Item --</option>
+                        @foreach (var i in Model.Items)
+                        {
+                            <option value="@i.ItemId"
+                                    data-item-name="@i.ItemName">
+                                @i.ItemName (Available: @i.AvailableStock @i.Unit)
+                            </option>
+                        }
+                    </select>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="itemSearchButton"
+                            title="Search item"
+                            aria-label="Search item">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+
+                <div class="form-text">
+                    Select an item from inventory. Click the search icon to find an item by name.
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Quantity</label>
+                <input asp-for="Quantity" type="number" min="1" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <!-- <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Employee (optional)</label>
+                <select asp-for="IssuedToEmployeeId" class="form-select">
+                    <option value="">-- Not an employee / guest --</option>
+                    @foreach (var e in Model.Employees)
+                    {
+                        <option value="@e.EmployeeId">@e.EmployeeCode - @e.FullName</option>
+                    } --!>
+                </select> 
+    <div class="col-md-6 mb-3">
+    <label asp-for="IssuedToName" class="form-label">
+        Issued To
+    </label>
+
+    <select asp-for="IssuedToName" class="form-select">
+        <option value="">-- Select Location --</option>
+        <option value="1st Floor">1st Floor</option>
+        <option value="2nd Floor">2nd Floor</option>
+        <option value="3rd Floor">3rd Floor</option>
+        <option value="4th Floor">4th Floor</option>
+        <option value="5th Floor">5th Floor</option>
+        <option value="6th Floor">6th Floor</option>
+        <option value="Linen Room">Linen Room</option>
+        <option value="Laundry">Laundry</option>
+    </select>
+
+    <span asp-validation-for="IssuedToName" class="text-danger"></span>
+</div>
+
+   
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Room Number</label>
+                <input asp-for="RoomNumber" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Department</label>
+                <input asp-for="Department" class="form-control" placeholder="Housekeeping, Front Desk..." />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Authorized By</label>
+                <input type="text" class="form-control" value="@Model.AuthorizedByName" disabled />
+                <div class="form-text">Automatically set to your logged-in account for accountability — not selectable.</div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Purpose</label>
+            <textarea asp-for="Purpose" class="form-control" rows="2" placeholder="Reason for issue"></textarea>
+        </div>
+
+        <p class="text-muted small">Issued by: <strong>@User.FindFirst("FullName")?.Value</strong> (current logged-in user), date/time recorded automatically.</p>
+
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Issue Item</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const itemSelect = document.getElementById("ItemId");
+            const searchButton = document.getElementById("itemSearchButton");
+
+            if (!itemSelect || !searchButton) {
+                return;
+            }
+
+            searchButton.addEventListener("click", function () {
+
+                const searchText = window.prompt(
+                    "Search item by name:",
+                    ""
+                );
+
+                if (searchText === null) {
+                    return;
+                }
+
+                const search = searchText.trim().toLowerCase();
+
+                if (search === "") {
+                    return;
+                }
+
+                const options = Array.from(itemSelect.options);
+
+                const matches = options.filter(function (option) {
+                    return option.value &&
+                           option.text.toLowerCase().includes(search);
+                });
+
+                if (matches.length === 0) {
+                    alert("No matching item found.");
+                    return;
+                }
+
+                if (matches.length === 1) {
+                    itemSelect.value = matches[0].value;
+                    itemSelect.dispatchEvent(new Event("change", { bubbles: true }));
+                    return;
+                }
+
+                const matchList = matches
+                    .map(function (option, index) {
+                        return (index + 1) + ". " + option.text;
+                    })
+                    .join("\n");
+
+                const selectedNumber = window.prompt(
+                    "Multiple items found. Enter the item number:\n\n" + matchList,
+                    "1"
+                );
+
+                if (selectedNumber === null) {
+                    return;
+                }
+
+                const index = parseInt(selectedNumber, 10) - 1;
+
+                if (index >= 0 && index < matches.length) {
+                    itemSelect.value = matches[index].value;
+                    itemSelect.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            });
+        });
+    </script>
+}

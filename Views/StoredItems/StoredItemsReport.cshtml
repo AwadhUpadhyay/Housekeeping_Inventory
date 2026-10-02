@@ -1,0 +1,122 @@
+@model IEnumerable<HotelHousekeepingApp.Models.StoredItem>
+
+@{
+    ViewData["Title"] = "Stored Items Report";
+    var items = Model?.ToList() ?? new List<HotelHousekeepingApp.Models.StoredItem>();
+    var totalStock = items.Where(x => x.IsActive).Sum(x => x.AvailableStock);
+    var totalValue = items.Where(x => x.IsActive).Sum(x => x.AvailableStock * x.Rate);
+    var lowStock = items.Count(x => x.IsActive && x.AvailableStock <= x.MinStockLevel);
+}
+
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        body { background: white !important; }
+        .card { border: 0 !important; box-shadow: none !important; }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-file-earmark-text"></i>
+                Stored Items Report
+            </h2>
+            <div class="text-muted">Radisson Hotel Varanasi - Housekeeping Inventory</div>
+            <small class="text-muted">Generated: @DateTime.Now.ToString("dd-MM-yyyy HH:mm")</small>
+        </div>
+
+        <div class="d-flex gap-2 no-print">
+            <a asp-action="ExportStoredItemsExcel" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Export Excel
+            </a>
+            <button type="button" class="btn btn-danger" onclick="window.print()">
+                <i class="bi bi-file-earmark-pdf"></i> Print / Save PDF
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0"><div class="card-body">
+                <small class="text-muted">Total Items</small>
+                <h3 class="fw-bold mb-0">@items.Count(x => x.IsActive)</h3>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0"><div class="card-body">
+                <small class="text-muted">Total Available Stock</small>
+                <h3 class="fw-bold mb-0">@totalStock</h3>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0"><div class="card-body">
+                <small class="text-muted">Total Stock Value</small>
+                <h3 class="fw-bold mb-0">₹@totalValue.ToString("N2")</h3>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Unit</th>
+                            <th class="text-end">Rate</th>
+                            <th class="text-end">Available Stock</th>
+                            <th class="text-end">Minimum</th>
+                            <th class="text-end">Stock Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var no = 1; }
+                        @foreach (var item in items)
+                        {
+                            var value = item.AvailableStock * item.Rate;
+                            var isLow = item.IsActive && item.AvailableStock <= item.MinStockLevel;
+                            <tr>
+                                <td>@no</td>
+                                <td class="fw-semibold">@item.ItemName</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Category) ? "-" : item.Category)</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Unit) ? "-" : item.Unit)</td>
+                                <td class="text-end">₹@item.Rate.ToString("N2")</td>
+                                <td class="text-end fw-bold">@item.AvailableStock</td>
+                                <td class="text-end">@item.MinStockLevel</td>
+                                <td class="text-end">₹@value.ToString("N2")</td>
+                                <td>
+                                    @if (!item.IsActive)
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                    else if (isLow)
+                                    {
+                                        <span class="badge bg-danger">Low Stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                </td>
+                            </tr>
+                            no++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 text-muted small">
+        Low-stock items: @lowStock | Report generated from the current Stored Items master.
+    </div>
+</div>

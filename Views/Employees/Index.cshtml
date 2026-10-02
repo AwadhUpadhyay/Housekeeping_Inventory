@@ -1,0 +1,47 @@
+@model List<Employee>
+@{
+    ViewData["Title"] = "Employees";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-people"></i> Employees</h3>
+    <div>
+        <a asp-action="Import" class="btn btn-outline-dark"><i class="bi bi-file-earmark-excel"></i> Import from Excel</a>
+        <a asp-action="Create" class="btn btn-dark"><i class="bi bi-plus-circle"></i> Add Employee</a>
+    </div>
+</div>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Code</th><th>Name</th><th>Department</th><th>Designation</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td>@e.EmployeeCode</td>
+                    <td>@e.FullName</td>
+                    <td>@e.Department</td>
+                    <td>@e.Designation</td>
+                    <td>@e.Phone</td>
+                    <td>
+                        @if (e.IsActive) { <span class="badge bg-success">Active</span> }
+                        else { <span class="badge bg-danger">Inactive</span> }
+                    </td>
+                    <td class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@e.EmployeeId" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <form asp-action="ToggleActive" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@e.EmployeeId" />
+                            <input type="hidden" name="activate" value="@(!e.IsActive)" />
+                            @if (e.IsActive) { <button class="btn btn-sm btn-outline-danger"><i class="bi bi-slash-circle"></i></button> }
+                            else { <button class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i></button> }
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

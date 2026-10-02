@@ -1,0 +1,53 @@
+@model EmployeeImportResultViewModel
+@{
+    ViewData["Title"] = "Import Employees";
+}
+<h3><i class="bi bi-file-earmark-excel"></i> Import Employees from Excel</h3>
+
+<div class="card p-4 mt-3" style="max-width:700px;">
+    <p class="text-muted">
+        Upload an <strong>.xlsx</strong> file with a header row containing these column names
+        (order doesn't matter; extra columns are ignored):
+    </p>
+    <ul class="text-muted small">
+        <li><strong>EmployeeCode</strong> (required)</li>
+        <li><strong>FullName</strong> (required)</li>
+        <li>Department (optional)</li>
+        <li>Designation (optional)</li>
+        <li>Phone (optional)</li>
+    </ul>
+    <p class="text-muted small">Rows with a duplicate EmployeeCode (already in the system) are skipped automatically, not overwritten.</p>
+
+    <form asp-action="Import" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <input type="file" name="file" class="form-control" accept=".xlsx" required />
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-upload"></i> Upload and Import</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to Employees</a>
+    </form>
+
+    @if (Model.TotalRowsRead > 0 || Model.Errors.Any())
+    {
+        <hr />
+        <h5>Import Result</h5>
+        <ul>
+            <li>Rows read: @Model.TotalRowsRead</li>
+            <li>Imported successfully: <span class="text-success">@Model.ImportedCount</span></li>
+            <li>Skipped (duplicate employee code): <span class="text-warning">@Model.SkippedDuplicateCount</span></li>
+        </ul>
+
+        @if (Model.Errors.Any())
+        {
+            <div class="alert alert-danger">
+                <strong>Some rows had problems:</strong>
+                <ul class="mb-0">
+                    @foreach (var err in Model.Errors)
+                    {
+                        <li>@err</li>
+                    }
+                </ul>
+            </div>
+        }
+    }
+</div>

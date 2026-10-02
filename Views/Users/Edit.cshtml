@@ -1,0 +1,43 @@
+@model UserFormViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+<h3><i class="bi bi-pencil-square"></i> Edit User</h3>
+
+<div class="card p-4 mt-3" style="max-width:600px;">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="UserId" />
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input value="@Model.Username" class="form-control" disabled />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select asp-for="RoleId" class="form-select">
+                @foreach (var r in Model.Roles)
+                {
+                    <option value="@r.RoleId">@r.RoleName</option>
+                }
+            </select>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label class="form-check-label">Active</label>
+        </div>
+
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Save Changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

@@ -1,0 +1,418 @@
+@model HotelHousekeepingApp.Models.StoredItem
+
+@{
+    ViewData["Title"] = "Adjust Stock";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Adjust Stock</h2>
+            <p class="text-muted mb-0">
+                Record stock that is discarded, damaged, or missing.
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to Items
+        </a>
+    </div>
+
+
+    <!-- Item Information -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">
+                <i class="bi bi-box-seam"></i>
+                Item Information
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted">
+                        Item Name
+                    </label>
+
+                    <div class="fw-bold fs-5">
+                        @Model.ItemName
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label text-muted">
+                        Category
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.Category
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-2">
+
+                    <label class="form-label text-muted">
+                        Unit
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.Unit
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label text-muted">
+                        Current Stock
+                    </label>
+
+                    <div class="fw-bold text-primary fs-5">
+                        @Model.AvailableStock @Model.Unit
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Adjustment Form -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-danger text-white">
+
+            <h5 class="mb-0">
+                <i class="bi bi-dash-circle"></i>
+                Stock Adjustment
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <form asp-action="AdjustStock"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.StoredItemID" />
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"
+                     role="alert">
+                </div>
+
+
+                <div class="row g-4">
+
+
+                    <!-- Adjustment Type -->
+                    <div class="col-md-4">
+
+                        <label for="transactionType"
+                               class="form-label fw-semibold">
+
+                            Adjustment Type
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <select id="transactionType"
+                                name="transactionType"
+                                class="form-select"
+                                required>
+
+                            <option value="DISCARD">
+                                DISCARD - Damaged / Expired
+                            </option>
+
+                            <option value="MISSING">
+                                MISSING - Lost / Missing
+                            </option>
+
+                        </select>
+
+
+                        <div class="form-text">
+                            Select the reason for reducing stock.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Quantity -->
+                    <div class="col-md-4">
+
+                        <label for="quantity"
+                               class="form-label fw-semibold">
+
+                            Quantity
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <input type="number"
+                               id="quantity"
+                               name="quantity"
+                               class="form-control"
+                               min="1"
+                               max="@Model.AvailableStock"
+                               step="1"
+                               value="1"
+                               required />
+
+
+                        <div class="form-text">
+                            Maximum available:
+                            <strong>
+                                @Model.AvailableStock
+                            </strong>
+                            @Model.Unit
+                        </div>
+
+                    </div>
+
+
+                    <!-- Current Stock -->
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Current Stock
+                        </label>
+
+
+                        <input type="text"
+                               class="form-control"
+                               value="@Model.AvailableStock @Model.Unit"
+                               readonly />
+
+                    </div>
+
+
+                    <!-- Remarks -->
+                    <div class="col-12">
+
+                        <label for="remarks"
+                               class="form-label fw-semibold">
+
+                            Remarks
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <textarea id="remarks"
+                                  name="remarks"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="500"
+                                  required
+                                  placeholder="Enter reason, details, damage information, missing details, etc."></textarea>
+
+
+                        <div class="form-text">
+                            Example: Damaged during housekeeping operation.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <!-- Stock Preview -->
+                <div class="alert alert-warning">
+
+                    <div class="d-flex align-items-center">
+
+                        <i class="bi bi-exclamation-triangle fs-4 me-3"></i>
+
+
+                        <div>
+
+                            <strong>
+                                Stock Update
+                            </strong>
+
+
+                            <div>
+
+                                Current stock:
+                                <strong>
+                                    @Model.AvailableStock
+                                </strong>
+
+
+                                &nbsp; → &nbsp;
+
+
+                                <strong id="newStockPreview">
+                                    @Model.AvailableStock
+                                </strong>
+
+
+                                @Model.Unit
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Warning -->
+                <div class="alert alert-danger">
+
+                    <i class="bi bi-exclamation-circle me-2"></i>
+
+                    <strong>Important:</strong>
+
+                    This transaction will permanently reduce the
+                    available stock. Please verify the quantity before
+                    submitting.
+
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+
+
+                    <div>
+
+                        <a asp-action="History"
+                           asp-route-id="@Model.StoredItemID"
+                           class="btn btn-info text-white">
+
+                            <i class="bi bi-clock-history"></i>
+
+                            View History
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            Cancel
+
+                        </a>
+
+
+                        <button type="submit"
+                                class="btn btn-danger px-4">
+
+                            <i class="bi bi-dash-circle"></i>
+
+                            Adjust Stock
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const quantityInput =
+                document.getElementById("quantity");
+
+            const preview =
+                document.getElementById("newStockPreview");
+
+            const currentStock =
+                @Model.AvailableStock;
+
+
+            function updatePreview() {
+
+                let quantity =
+                    parseInt(quantityInput.value) || 0;
+
+
+                if (quantity < 0) {
+                    quantity = 0;
+                }
+
+
+                if (quantity > currentStock) {
+                    quantity = currentStock;
+                    quantityInput.value = currentStock;
+                }
+
+
+                let newStock =
+                    currentStock - quantity;
+
+
+                preview.textContent =
+                    newStock.toLocaleString();
+
+            }
+
+
+            quantityInput.addEventListener(
+                "input",
+                updatePreview
+            );
+
+
+            updatePreview();
+
+        });
+
+    </script>
+
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

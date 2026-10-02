@@ -1,0 +1,60 @@
+@model List<User>
+@{
+    ViewData["Title"] = "Users";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-person-gear"></i> User Accounts</h3>
+    <a asp-action="Create" class="btn btn-dark"><i class="bi bi-plus-circle"></i> Create User</a>
+</div>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Username</th><th>Full Name</th><th>Role</th><th>Status</th>
+                    <th>Last Login</th><th>Created</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.Username</td>
+                    <td>@u.FullName</td>
+                    <td><span class="badge bg-secondary">@u.RoleName</span></td>
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </td>
+                    <td>@(u.LastLoginDate?.ToLocalTime().ToString("dd-MMM-yyyy HH:mm") ?? "Never")</td>
+                    <td>@u.CreatedDate.ToLocalTime().ToString("dd-MMM-yyyy")</td>
+                    <td class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@u.UserId" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <a asp-action="ResetPassword" asp-route-id="@u.UserId" asp-route-username="@u.Username" class="btn btn-sm btn-outline-warning"><i class="bi bi-key"></i></a>
+                        <form asp-action="ToggleActive" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.UserId" />
+                            <input type="hidden" name="activate" value="@(!u.IsActive)" />
+                            @if (u.IsActive)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Deactivate this account?');"><i class="bi bi-slash-circle"></i></button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i></button>
+                            }
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

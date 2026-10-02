@@ -1,0 +1,27 @@
+@model AddStockViewModel
+@{
+    ViewData["Title"] = "Add Stock";
+}
+<h3><i class="bi bi-arrow-down-circle text-success"></i> Add Stock</h3>
+
+<div class="card p-4 mt-3" style="max-width:500px;">
+    <p><strong>Item:</strong> @Model.ItemName<br/>
+       <strong>Current Available Stock:</strong> @Model.CurrentStock</p>
+
+    <form asp-action="AddStock" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ItemId" />
+        <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Quantity to Add</label>
+            <input asp-for="Quantity" type="number" min="1" class="form-control" autofocus />
+            <span asp-validation-for="Quantity" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Remarks (optional)</label>
+            <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="e.g. Purchase order #1234"></textarea>
+        </div>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Add Stock</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

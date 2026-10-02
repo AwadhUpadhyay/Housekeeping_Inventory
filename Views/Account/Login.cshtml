@@ -1,0 +1,48 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Property_Name";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Housekeeping Inventory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="login-page">
+    <div class="card login-card shadow-lg p-4">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="bi bi-building" style="font-size:2.5rem;color:#2c3e50;"></i>
+                <h4 class="mt-2 mb-0">Housekeeping Inventory</h4>
+                <small class="text-muted">Sign in to continue</small>
+            </div>
+
+            <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+            <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input asp-for="Username" class="form-control" autofocus />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input asp-for="Password" type="password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <button type="submit" class="btn btn-dark w-100"><i class="bi bi-box-arrow-in-right"></i> Login</button>
+            </form>
+
+            <p class="text-center text-muted small mt-4 mb-0">
+                No public registration. Accounts are created by your Administrator.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

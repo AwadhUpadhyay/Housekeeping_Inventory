@@ -1,0 +1,152 @@
+@model List<RunningInventoryRowViewModel>
+
+@{
+    ViewData["Title"] = "Running Inventory";
+    bool lowStockOnly = ViewBag.LowStockOnly ?? false;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">
+            <i class="bi bi-box-seam"></i> Running Inventory
+        </h3>
+
+        <div class="text-muted small">
+            Location-wise breakup of issued stock.
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+
+        <a asp-controller="Inventory"
+           asp-action="ExportExcel"
+           asp-route-lowStockOnly="@lowStockOnly"
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i>
+            Export Excel
+        </a>
+
+        <a asp-controller="Inventory"
+           asp-action="Print"
+           asp-route-lowStockOnly="@lowStockOnly"
+           target="_blank"
+           class="btn btn-secondary">
+            <i class="bi bi-printer"></i>
+            Print
+        </a>
+
+        <a asp-controller="Inventory"
+           asp-action="IssueItem"
+           class="btn btn-primary">
+            <i class="bi bi-box-arrow-up"></i>
+            Issue Item
+        </a>
+
+    </div>
+</div>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+
+            <thead class="table-light">
+                <tr>
+                    <th rowspan="2" class="text-center align-middle">
+                        Item
+                    </th>
+
+                    <th rowspan="2" class="text-center align-middle">
+                        SKU
+                    </th>
+
+                    <th rowspan="2" class="text-center align-middle">
+                        Category
+                    </th>
+
+                    <th rowspan="2" class="text-center align-middle">
+                        Unit
+                    </th>
+
+                    <th rowspan="2" class="text-center align-middle">
+                        Running Stock
+                    </th>
+
+                    <th colspan="10" class="text-center align-middle">
+                        Location-wise Breakup
+                    </th>
+                </tr>
+
+                <tr>
+                    <th class="text-center align-middle">1st Floor</th>
+                    <th class="text-center align-middle">2nd Floor</th>
+                    <th class="text-center align-middle">3rd Floor</th>
+                    <th class="text-center align-middle">4th Floor</th>
+                    <th class="text-center align-middle">5th Floor</th>
+                    <th class="text-center align-middle">6th Floor</th>
+                    <th class="text-center align-middle">Linen Room</th>
+                    <th class="text-center align-middle">Laundry</th>
+                    <th class="text-center align-middle">Discarded</th>
+                    <th class="text-center align-middle">Missing</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="15"
+                        class="text-center text-muted py-4">
+                        No items match this view.
+                    </td>
+                </tr>
+            }
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">
+                        @item.ItemName
+                    </td>
+
+                    <td>
+                        @(string.IsNullOrWhiteSpace(item.SKU)
+                            ? "—"
+                            : item.SKU)
+                    </td>
+
+                    <td>
+                        @item.CategoryName
+                    </td>
+
+                    <td>
+                        @item.Unit
+                    </td>
+
+                    <td class="text-center fw-bold">
+                        @item.AvailableStock
+                    </td>
+
+                    <td class="text-center">@item.FirstFloor</td>
+                    <td class="text-center">@item.SecondFloor</td>
+                    <td class="text-center">@item.ThirdFloor</td>
+                    <td class="text-center">@item.FourthFloor</td>
+                    <td class="text-center">@item.FifthFloor</td>
+                    <td class="text-center">@item.SixthFloor</td>
+                    <td class="text-center">@item.LinenRoom</td>
+                    <td class="text-center">@item.Laundry</td>
+
+                    <td class="text-center fw-bold">
+                        @item.Discarded
+                    </td>
+
+                    <td class="text-center fw-bold">
+                        @item.Missing
+                    </td>
+                </tr>
+            }
+
+            </tbody>
+        </table>
+    </div>
+</div>

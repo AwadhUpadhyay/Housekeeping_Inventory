@@ -1,0 +1,225 @@
+@model HotelHousekeepingApp.Models.StoredItem
+
+@{
+    ViewData["Title"] = "Edit Stored Item";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Edit Stored Item</h2>
+            <p class="text-muted mb-0">
+                Update item details, rate and minimum stock level.
+            </p>
+        </div>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Items
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-pencil-square"></i> Item Details
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form asp-action="Edit" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="StoredItemID" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"
+                     role="alert"></div>
+
+                <div class="row g-3">
+
+                    <!-- Item Name -->
+                    <div class="col-md-6">
+                        <label asp-for="ItemName" class="form-label fw-semibold">
+                            Item Name <span class="text-danger">*</span>
+                        </label>
+
+                        <input asp-for="ItemName"
+                               class="form-control"
+                               placeholder="Enter item name" />
+
+                        <span asp-validation-for="ItemName"
+                              class="text-danger"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6">
+                        <label asp-for="Category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+
+                        <select asp-for="Category"
+                                class="form-select"
+                                required>
+                            <option value="">-- Select Category --</option>
+                            <option value="Bathroom Amenities">Bathroom Amenities</option>
+                            <option value="Bedroom Amenities">Bedroom Amenities</option>
+                            <option value="Cleaning Supplies">Cleaning Supplies</option>
+                            <option value="Linen">Linen</option>
+                            <option value="Guest Supplies">Guest Supplies</option>
+                        </select>
+
+                        <span asp-validation-for="Category"
+                              class="text-danger"></span>
+                    </div>
+
+                    <!-- Unit -->
+                    <div class="col-md-4">
+                        <label asp-for="Unit" class="form-label fw-semibold">
+                            Unit <span class="text-danger">*</span>
+                        </label>
+
+                        <select asp-for="Unit"
+                                class="form-select"
+                                required>
+                            <option value="pcs">Pieces (pcs)</option>
+                            <option value="box">Box</option>
+                            <option value="packet">Packet</option>
+                            <option value="bottle">Bottle</option>
+                            <option value="can">Can</option>
+                            <option value="kg">Kilogram (kg)</option>
+                            <option value="ltr">Litre (ltr)</option>
+                        </select>
+
+                        <span asp-validation-for="Unit"
+                              class="text-danger"></span>
+                    </div>
+
+                    <!-- Rate -->
+                    <div class="col-md-4">
+                        <label asp-for="Rate" class="form-label fw-semibold">
+                            Rate
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+
+                            <input asp-for="Rate"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control" />
+                        </div>
+
+                        <span asp-validation-for="Rate"
+                              class="text-danger"></span>
+
+                        <div class="form-text">
+                            Cost per unit.
+                        </div>
+                    </div>
+
+                    <!-- Current Stock -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Current Stock
+                        </label>
+
+                        <input asp-for="AvailableStock"
+                               class="form-control"
+                               readonly />
+
+                        <div class="form-text">
+                            Use Add Stock or Adjust Stock to change inventory.
+                        </div>
+                    </div>
+
+                    <!-- Minimum Stock -->
+                    <div class="col-md-4">
+                        <label asp-for="MinStockLevel"
+                               class="form-label fw-semibold">
+                            Minimum Stock Level
+                        </label>
+
+                        <input asp-for="MinStockLevel"
+                               type="number"
+                               min="0"
+                               class="form-control" />
+
+                        <span asp-validation-for="MinStockLevel"
+                              class="text-danger"></span>
+
+                        <div class="form-text">
+                            Low-stock warning threshold.
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Status
+                        </label>
+
+                        <div class="form-check form-switch mt-2">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   type="checkbox" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label">
+                                Active Item
+                            </label>
+
+                        </div>
+
+                        <div class="form-text">
+                            Inactive items cannot be used for stock transactions.
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-between">
+
+                    <a asp-action="History"
+                       asp-route-id="@Model.StoredItemID"
+                       class="btn btn-info text-white">
+                        <i class="bi bi-clock-history"></i>
+                        History
+                    </a>
+
+                    <div class="d-flex gap-2">
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle"></i>
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

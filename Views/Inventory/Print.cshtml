@@ -1,0 +1,202 @@
+@model List<RunningInventoryRowViewModel>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Running Inventory";
+    var printDate = ViewBag.PrintDate ?? DateTime.Now;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    <title>Running Inventory</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 20px;
+            color: #000;
+        }
+
+        .print-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .print-header h1 {
+            margin: 0 0 5px 0;
+            font-size: 22px;
+        }
+
+        .print-header div {
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            font-weight: bold;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .no-print {
+            margin-bottom: 15px;
+        }
+
+        .no-print button {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        @@media print {
+            body {
+                margin: 8mm;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            @@page {
+                size: landscape;
+                margin: 8mm;
+            }
+
+            table {
+                font-size: 8px;
+            }
+
+            th,
+            td {
+                padding: 3px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="no-print">
+        <button type="button" onclick="window.print()">
+            Print
+        </button>
+
+        <button type="button" onclick="window.close()">
+            Close
+        </button>
+    </div>
+
+    <div class="print-header">
+        <h1>Running Inventory</h1>
+
+        <div>
+            Location-wise Breakup
+        </div>
+
+        <div>
+            Printed:
+            @printDate.ToString("dd-MM-yyyy HH:mm")
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">Item</th>
+                <th rowspan="2">SKU</th>
+                <th rowspan="2">Category</th>
+                <th rowspan="2">Unit</th>
+                <th rowspan="2">Running Stock</th>
+
+                <th colspan="10">
+                    Location-wise Breakup
+                </th>
+            </tr>
+
+            <tr>
+                <th>1st Floor</th>
+                <th>2nd Floor</th>
+                <th>3rd Floor</th>
+                <th>4th Floor</th>
+                <th>5th Floor</th>
+                <th>6th Floor</th>
+                <th>Linen Room</th>
+                <th>Laundry</th>
+                <th>Discarded</th>
+                <th>Missing</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.ItemName
+                </td>
+
+                <td>
+                    @(string.IsNullOrWhiteSpace(item.SKU)
+                        ? "—"
+                        : item.SKU)
+                </td>
+
+                <td>
+                    @item.CategoryName
+                </td>
+
+                <td>
+                    @item.Unit
+                </td>
+
+                <td>
+                    @item.AvailableStock
+                </td>
+
+                <td>@item.FirstFloor</td>
+                <td>@item.SecondFloor</td>
+                <td>@item.ThirdFloor</td>
+                <td>@item.FourthFloor</td>
+                <td>@item.FifthFloor</td>
+                <td>@item.SixthFloor</td>
+                <td>@item.LinenRoom</td>
+                <td>@item.Laundry</td>
+                <td>@item.Discarded</td>
+                <td>@item.Missing</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                window.print();
+            }, 300);
+        });
+    </script>
+
+</body>
+</html>
